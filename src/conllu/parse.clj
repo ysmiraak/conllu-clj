@@ -34,7 +34,7 @@
   (s/assert nat-int? (Long/parseLong s)))
 
 (s/fdef parse-avm
-        :args (s/cat :s string? :c char? kf ifn? vf ifn?)
+        :args (s/cat :s string? :c char? :kf ifn? :vf ifn?)
         :ret map?)
 
 (defn parse-avm [s c kf vf]
