@@ -1,5 +1,5 @@
 (ns conllu.write
-  "for parsing conllu files."
+  "for writing conllu files."
   (:require [clojure
              [spec :as s]
              [string :as str]]
