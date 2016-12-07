@@ -26,14 +26,15 @@
 
 (defn str-word
   "the inverse of [[conllu.parse/parse-word]]."
-  [{:keys [:conllu/index :conllu/multi :conllu/empty
-           :conllu/form :conllu/lemma :conllu/upos :conllu/xpos :conllu/morph
-           :conllu/head :conllu/rel :conllu/deps :conllu/misc]}]
-  (->> [(cond index index multi (str/join \- multi) empty (str/join \. empty))
-        form lemma (when upos (name upos)) xpos (when morph (str-avm \= morph))
-        head (when rel (name rel)) (when deps (str-avm \: deps)) (when misc (str-avm \= misc))]
-       (map #(if % % \_))
-       (str/join \tab)))
+  [word]
+  (let [{:keys [:conllu/index :conllu/multi :conllu/empty
+                :conllu/form :conllu/lemma :conllu/upos :conllu/xpos :conllu/morph
+                :conllu/head :conllu/rel :conllu/deps :conllu/misc]} word]
+    (->> [(cond index index multi (str/join \- multi) empty (str/join \. empty))
+          form lemma (when upos (name upos)) xpos (when morph (str-avm \= morph))
+          head (when rel (name rel)) (when deps (str-avm \: deps)) (when misc (str-avm \= misc))]
+         (map #(if % % \_))
+         (str/join \tab))))
 
 (s/fdef write-file :args (s/cat :sent+ (s/every :conllu/sent) :file some?))
 

@@ -46,8 +46,11 @@
 (defn parse-avm
   "parses an attribute-value matrix `s` into a map. the attribute-value pairs are
   linked by `c`, and separated by `|`. the keys are transformed by `kf` and the
-  values by `vf`. for example `(parse-avm \"a=1|b=2|c=3\" \\= keyword
-  parse-nat-int)` returns `{:a 1, :b 2, :c 3}`."
+  values by `vf`.
+  ```
+  (parse-avm \"a=1|b=2|c=3\" \\= keyword parse-nat-int)
+  #_=> {:a 1, :b 2, :c 3}
+  ```"
   [s c kf vf]
   (->> (str s \|)
        (re-seq

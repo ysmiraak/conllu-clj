@@ -10,6 +10,5 @@
   ;; :jvm-opts ["-Xmx1g"]
   :jar-exclusions [#"(?:^|/)(trial|example)/"]
   :codox {:output-path "doc"
-          :namespaces [#"^conllu\."]
-          :source-uri "https://github.com/ysmiraak/conllu-clj/tree/master/{filepath}#L{line}"
+          :source-uri "https://github.com/ysmiraak/conllu-clj/blob/master/{filepath}#L{line}"
           :metadata {:doc/format :markdown}})
