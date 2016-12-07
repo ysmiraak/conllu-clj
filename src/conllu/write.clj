@@ -1,4 +1,5 @@
 (ns conllu.write
+  "for parsing conllu files."
   (:require [clojure
              [spec :as s]
              [string :as str]]
@@ -9,7 +10,9 @@
         :args (s/cat :c char? :m map?)
         :ret string?)
 
-(defn str-avm [c m]
+(defn str-avm
+  "the inverse of [[conllu.parse/parse-avm]]."
+  [c m]
   (->> (sort-by key m)
        (map (fn [[k v]]
               (let [k (if (keyword? k) (name k) k)
@@ -22,6 +25,7 @@
         :ret string?)
 
 (defn str-word
+  "the inverse of [[conllu.parse/parse-word]]."
   [{:keys [:conllu/index :conllu/multi :conllu/empty
            :conllu/form :conllu/lemma :conllu/upos :conllu/xpos :conllu/morph
            :conllu/head :conllu/rel :conllu/deps :conllu/misc]}]
@@ -33,7 +37,10 @@
 
 (s/fdef write-file :args (s/cat :sent+ (s/every :conllu/sent) :file some?))
 
-(defn write-file [sent+ file]
+(defn write-file
+  "parses a conllu `file` which can be any acceptable input
+  for `clojure.java.io/writer`."
+  [sent+ file]
   (with-open [^java.io.BufferedWriter wtr (io/writer file)]
     (doseq [sent sent+]
       (doseq [word sent]

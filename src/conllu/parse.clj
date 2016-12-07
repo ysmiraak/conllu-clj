@@ -1,43 +1,54 @@
 (ns conllu.parse
+  "for parsing conllu files."
   (:refer-clojure :exclude [vector hash-map])
   (:require [clj-tuple :refer [hash-map vector]]
             [clojure
              [spec :as s]
              [string :as str]]
             [clojure.java.io :as io]
-            conllu
-            [clojure.spec.test :as t]))
-
-;; (binding [s/*compile-asserts* true])
-
-(s/check-asserts true)
+            conllu))
 
 (s/fdef specified?
         :args (s/cat :s string?)
         :ret boolean?)
 
-(defn specified? [s]
+(defn specified?
+  "an underscore means unspecified."
+  [s]
   (not= "_" s))
 
 (s/fdef parse-pos-int
         :args (s/cat :s string?)
         :ret pos-int?)
 
-(defn parse-pos-int [s]
-  (s/assert pos-int? (Long/parseLong s)))
+(defn parse-pos-int
+  "refuses to parse non-pos-int."
+  [s]
+  (let [i (Long/parseLong s)]
+    (if (pos-int? i) i
+        (throw (ex-info "int not positive." {:int i})))))
 
 (s/fdef parse-nat-int
         :args (s/cat :s string?)
         :ret nat-int?)
 
-(defn parse-nat-int [s]
-  (s/assert nat-int? (Long/parseLong s)))
+(defn parse-nat-int
+  "refuses to parse non-nat-int."
+  [s]
+  (let [i (Long/parseLong s)]
+    (if (nat-int? i) i
+        (throw (ex-info "int not natural." {:int i})))))
 
 (s/fdef parse-avm
         :args (s/cat :s string? :c char? :kf ifn? :vf ifn?)
         :ret map?)
 
-(defn parse-avm [s c kf vf]
+(defn parse-avm
+  "parses an attribute-value matrix `s` into a map. the attribute-value pairs are
+  linked by `c`, and separated by `|`. the keys are transformed by `kf` and the
+  values by `vf`. for example `(parse-avm \"a=1|b=2|c=3\" \\= keyword
+  parse-nat-int)` returns `{:a 1, :b 2, :c 3}`."
+  [s c kf vf]
   (->> (str s \|)
        (re-seq
         (case c
@@ -56,7 +67,15 @@
         :args (s/cat :line string?)
         :ret :conllu/word)
 
-(defn parse-word [line]
+;; todo more check for well-formedness
+;; 1. indices within range
+;; 2. ordered
+
+(defn parse-word
+  "parses a line of conllu, which must not be empty or comment. turn
+  on `clojure.spec/check-asserts` to ensure well-formedness, for
+  which `clojure.spec/*compile-asserts*` needs to be `true`."
+  [line]
   (let [[id form lemma upos xpos morph head rel deps misc] (str/split line #"\t")
         res (condp re-matches id
               #"\d+" :>> (parse-init)
@@ -84,16 +103,21 @@
       :finally persistent!)))
 
 (def conll-xform
+  "for transforming a seq of lines in a conll file into a seq of sentences which
+  are seqs of lines, ignoring comments."
   (comp (map str/trim)
         (remove #(str/starts-with? % "#"))
         (partition-by str/blank?)
-        (remove #(= [""] %))
-        (map #(mapv parse-word %))))
+        (remove #(= [""] %))))
 
 (s/fdef parse-file
         :args (s/cat :file any?)
         :ret :conllu/sent)
 
-(defn parse-file [file]
+(defn parse-file
+  "parses a conllu `file` which can be any acceptable input
+  for `clojure.java.io/reader`."
+  [file]
   (with-open [rdr (io/reader file)]
-    (into [] conll-xform (line-seq rdr))))
+    (into [] (comp conll-xform (map #(mapv parse-word %)))
+          (line-seq rdr))))

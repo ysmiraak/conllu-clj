@@ -1,6 +1,4 @@
-(ns conllu
-  (:require [clojure.spec :as s]
-            [clojure.spec.test :as t]))
+(ns conllu "specs." (:require [clojure.spec :as s]))
 
 (s/def ::multi (s/tuple pos-int? pos-int?))
 (s/def ::empty (s/tuple pos-int? pos-int?))
