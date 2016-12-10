@@ -54,3 +54,16 @@
                (when-not (zero? tot))
                (let [tot (+ t f)])))
         res+)))
+
+(s/fdef diff
+        :args (s/cat :gold :conllu/sent :eval :conllu/sent :key+ (s/every keyword?))
+        :ret (s/coll-of (s/coll-of keyword? :kind set?) :kind vector?)
+        :fn #(= (-> % :args :gold) (-> % :args :eval) (-> % :ret count)))
+
+(defn diff
+  "returns for each word the keys in `key+` where `gold` and `eval` differ."
+  [gold eval key+]
+  (mapv (fn [g e]
+          (reduce (fn [res k] (if (= (g k) (e k)) res (conj res k)))
+                  #{} key+))
+        gold eval))

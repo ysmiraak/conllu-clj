@@ -6,9 +6,7 @@
             [clojure.java.io :as io]
             conllu))
 
-(s/fdef str-avm
-        :args (s/cat :c char? :m map?)
-        :ret string?)
+(s/fdef str-avm :args (s/cat :c char? :m map?) :ret string?)
 
 (defn str-avm
   "the inverse of [[conllu.parse/parse-avm]]."
@@ -20,9 +18,7 @@
                 (str k c v))))
        (str/join \|)))
 
-(s/fdef str-word
-        :args (s/cat :word :conllu/word)
-        :ret string?)
+(s/fdef str-word :args (s/cat :word :conllu/word) :ret string?)
 
 (defn str-word
   "the inverse of [[conllu.parse/parse-word]]."
@@ -49,3 +45,52 @@
           (.write ^String (str-word word))
           .newLine))
       (.newLine wtr))))
+
+(s/fdef tex-escape :args (s/cat :s string?) :ret string?)
+
+(defn tex-escape
+  "escape `s` for `tex`."
+  [s]
+  (str/escape s {\$ "\\$" \% "\\%"}))
+
+(s/def :tikz/style string?)
+
+(s/fdef tikz-dep
+        :args (s/cat :sent :conllu/sent :sel-fn+ (s/every ifn?))
+        :ret (s/coll-of string? :kind vector?))
+
+(defn tikz-dep
+  "format `:conllu/index` words in `sent` into lines of `tex` code to be used
+  with the `tikz-dependency` package. the text at each node will be selected by
+  `sel-fn+` for each word:
+  ```
+  [(comp tex-escape name :conllu/xpos)
+   (comp tex-escape name :conllu/upos)
+   (comp tex-escape :conllu/form)]
+  ```
+  note that each `sel-fn` needs to escape the string properly for the target
+  `tex` engine (`xelatex` recommended).
+
+  if a word has an entry of `:tikz/style`, such as `[edge style={red},label
+  style={fill=red}]`, that style will be used.
+
+  `xelatex` template:
+  ```
+  \\documentclass{article}
+  \\usepackage[a0paper,left=0cm,right=0cm,top=4cm,bottom=4cm]{geometry}
+  \\usepackage{tikz-dependency}
+  \\usepackage{xeCJK}
+  \\begin{document}
+  ...
+  \\end{document}
+  ```"
+  [sent sel-fn+]
+  (let [arc (fn [{:keys [:conllu/index :conllu/head :conllu/rel :tikz/style] :or {style ""}}]
+              (if (zero? head) (str "\\deproot" style "{" index "}{root}")
+                  (str "\\depedge" style "{" index "}{" head "}{" (-> rel name tex-escape) "}")))
+        w+ (filter :conllu/index sent)]
+    (as-> ["\\begin{dependency}" "\\begin{deptext}"] $
+      (reduce #(-> %1 (conj (str/join " \\& " (map %2 w+))) (conj "\\\\")) $ sel-fn+)
+      (conj $ "\\end{deptext}")
+      (reduce #(conj %1 (arc %2)) $ w+)
+      (conj $ "\\end{dependency}"))))
