@@ -1,5 +1,4 @@
 (ns conllu.write
-  "for writing conllu files."
   (:require [clojure
              [spec :as s]
              [string :as str]]
@@ -79,6 +78,8 @@
   \\documentclass{article}
   \\usepackage[a0paper,left=0cm,right=0cm,top=4cm,bottom=4cm]{geometry}
   \\usepackage{tikz-dependency}
+  \\usepackage{fontspec}
+  \\setmainfont{Times New Roman}
   \\usepackage{xeCJK}
   \\begin{document}
   ...

@@ -1,5 +1,4 @@
 (ns conllu.parse
-  "for parsing conllu files."
   (:refer-clojure :exclude [vector hash-map])
   (:require [clj-tuple :refer [hash-map vector]]
             [clojure

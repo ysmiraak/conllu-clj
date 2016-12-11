@@ -1,5 +1,4 @@
 (ns conllu.eval
-  "for calculating attachment scores."
   (:refer-clojure :exclude [hash-map])
   (:require [clj-tuple :refer [hash-map]]
             [clojure.spec :as s]
