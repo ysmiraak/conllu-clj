@@ -48,9 +48,11 @@
 (s/fdef tex-escape :args (s/cat :s string?) :ret string?)
 
 (defn tex-escape
-  "escape `s` for `tex`."
+  "escape the special characters in `s` for `tex`."
   [s]
-  (str/escape s {\$ "\\$" \% "\\%"}))
+  (str/escape
+   s {\# "\\#", \$ "\\$", \% "\\%", \& "\\&", \_ "\\_", \{ "\\{", \} "\\}"
+      \^ "\\^{}", \~ "\\~{}", \\ "\\textbackslash{}"}))
 
 (s/def :tikz/style string?)
 
@@ -91,7 +93,9 @@
                   (str "\\depedge" style "{" index "}{" head "}{" (-> rel name tex-escape) "}")))
         w+ (filter :conllu/index sent)]
     (as-> ["\\begin{dependency}" "\\begin{deptext}"] $
-      (reduce #(-> %1 (conj (str/join " \\& " (map %2 w+))) (conj "\\\\")) $ sel-fn+)
-      (conj $ "\\end{deptext}")
-      (reduce #(conj %1 (arc %2)) $ w+)
-      (conj $ "\\end{dependency}"))))
+      (transient $)
+      (reduce #(-> %1 (conj! (str/join " \\& " (map %2 w+))) (conj! "\\\\")) $ sel-fn+)
+      (conj! $ "\\end{deptext}")
+      (reduce #(conj! %1 (arc %2)) $ w+)
+      (conj! $ "\\end{dependency}")
+      (persistent! $))))
