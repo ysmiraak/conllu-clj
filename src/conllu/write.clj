@@ -34,7 +34,7 @@
 (s/fdef write-file :args (s/cat :sent+ (s/every :conllu/sent) :file some?))
 
 (defn write-file
-  "parses a conllu `file` which can be any acceptable input
+  "writes a conllu `file` which can be any acceptable input
   for `clojure.java.io/writer`."
   [sent+ file]
   (with-open [^java.io.BufferedWriter wtr (io/writer file)]
