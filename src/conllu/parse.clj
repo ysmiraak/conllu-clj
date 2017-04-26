@@ -63,7 +63,7 @@
 
 (defn- parse-init
   ([] #(hash-map :conllu/index (parse-pos-int %)))
-  ([t] #(hash-map t (vector (parse-pos-int (nth % 1)) (parse-pos-int (nth % 2))))))
+  ([t] #(hash-map t (vector (parse-nat-int (nth % 1)) (parse-pos-int (nth % 2))))))
 
 (s/fdef parse-word
         :args (s/cat :line string?)
@@ -99,7 +99,9 @@
       (specified? rel)
       (assoc! :conllu/rel (keyword rel))
       (or (:conllu/empty res) (specified? deps))
-      (assoc! :conllu/deps (parse-avm deps \: parse-nat-int keyword))
+      (assoc! :conllu/deps (parse-avm deps \:
+                                      identity ; fix: here could be :conllu/index or :conllu/empty, use proper type for distinction?
+                                      keyword))
       (specified? misc)
       (assoc! :conllu/misc (parse-avm misc \= keyword identity))
       :finally persistent!)))
@@ -114,7 +116,7 @@
 
 (s/fdef parse-file
         :args (s/cat :file any?)
-        :ret :conllu/sent)
+        :ret (s/every :conllu/sent))
 
 (defn parse-file
   "parses a conllu `file` which can be any acceptable input
